@@ -145,6 +145,25 @@ public class TicketController {
             comment.setMessage(String.valueOf(body.get("message")));
             comment.setInternal(Boolean.TRUE.equals(body.get("isInternal")));
             commentRepo.save(comment);
+
+            if (author.getRole().equals("CUSTOMER")) {
+                List<TicketComment> historyList = commentRepo.findByTicketIdOrderByCreatedAtAsc(id);
+                String historyText = historyList.stream()
+                        .map(c -> c.getAuthor().getRole() + ": " + c.getMessage())
+                        .collect(java.util.stream.Collectors.joining("\n"));
+                String aiReplyText = aiTicketService.generateChatReply(
+                        ticket.getTitle(), ticket.getDescription(), historyText, comment.getMessage());
+                User botAgent = assignmentRepo.findTopByTicketIdOrderByAssignedAtDesc(id)
+                        .map(TicketAssignment::getAgent)
+                        .orElse(author);
+                TicketComment aiReply = new TicketComment();
+                aiReply.setTicket(ticket);
+                aiReply.setAuthor(botAgent);
+                aiReply.setMessage(aiReplyText);
+                aiReply.setInternal(false);
+                commentRepo.save(aiReply);
+            }
+
             return ResponseEntity.ok((Object) Map.of(
                     "id", comment.getId(),
                     "message", comment.getMessage(),
