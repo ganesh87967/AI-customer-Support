@@ -47,7 +47,7 @@ public class TicketController {
     }
 
     @GetMapping("/agents")
-    public List<Map<String, Object>> getAgents() {
+    public List> getAgents() {
         return userRepo.findByRole("AGENT").stream()
                 .map(a -> Map.<String, Object>of("id", a.getId(), "name", a.getName(), "email", a.getEmail()))
                 .toList();
@@ -81,7 +81,7 @@ public class TicketController {
         ticket.setCategory(matchedCategory);
         ticket = ticketRepo.save(ticket);
 
-        // Auto-assign to an available support agent
+        // Auto-assign to an available support agent and post immediate AI reply
         List<User> agents = userRepo.findByRole("AGENT");
         if (!agents.isEmpty()) {
             User assignedAgent = agents.get((int) (ticket.getId() % agents.size()));
@@ -90,13 +90,20 @@ public class TicketController {
             assignment.setAgent(assignedAgent);
             assignment.setNotes("Auto-assigned by Smart Support triage");
             assignmentRepo.save(assignment);
+
+            TicketComment aiReply = new TicketComment();
+            aiReply.setTicket(ticket);
+            aiReply.setAuthor(assignedAgent);
+            aiReply.setMessage(ai.customerResponse());
+            aiReply.setInternal(false);
+            commentRepo.save(aiReply);
         }
 
         return ResponseEntity.ok(enrichTicket(ticket));
     }
 
     @GetMapping("/tickets")
-    public List<Map<String, Object>> listTickets(Authentication auth) {
+    public List> listTickets(Authentication auth) {
         User user = userRepo.findByEmail(auth.getName()).orElseThrow();
         List<Ticket> tickets = user.getRole().equals("CUSTOMER")
                 ? ticketRepo.findByCustomerIdOrderByCreatedAtDesc(user.getId())
@@ -151,7 +158,7 @@ public class TicketController {
     }
 
     @GetMapping("/tickets/{id}/comments")
-    public List<Map<String, Object>> getComments(@PathVariable Long id) {
+    public List> getComments(@PathVariable Long id) {
         return commentRepo.findByTicketIdOrderByCreatedAtAsc(id).stream()
                 .map(c -> Map.<String, Object>of(
                         "id", c.getId(),
