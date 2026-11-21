@@ -81,7 +81,6 @@ public class TicketController {
         ticket.setCategory(matchedCategory);
         ticket = ticketRepo.save(ticket);
 
-        // Auto-assign to an available support agent and post immediate AI reply
         List<User> agents = userRepo.findByRole("AGENT");
         if (!agents.isEmpty()) {
             User assignedAgent = agents.get((int) (ticket.getId() % agents.size()));
