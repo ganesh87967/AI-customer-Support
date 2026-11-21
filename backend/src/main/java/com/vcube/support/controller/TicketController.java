@@ -47,9 +47,9 @@ public class TicketController {
     }
 
     @GetMapping("/agents")
-    public List> getAgents() {
+    public List<?> getAgents() {
         return userRepo.findByRole("AGENT").stream()
-                .map(a -> Map.<String, Object>of("id", a.getId(), "name", a.getName(), "email", a.getEmail()))
+                .map(a -> Map.of("id", a.getId(), "name", a.getName(), "email", a.getEmail()))
                 .toList();
     }
 
@@ -102,7 +102,7 @@ public class TicketController {
     }
 
     @GetMapping("/tickets")
-    public List> listTickets(Authentication auth) {
+    public List<?> listTickets(Authentication auth) {
         User user = userRepo.findByEmail(auth.getName()).orElseThrow();
         List<Ticket> tickets = user.getRole().equals("CUSTOMER")
                 ? ticketRepo.findByCustomerIdOrderByCreatedAtDesc(user.getId())
@@ -157,9 +157,9 @@ public class TicketController {
     }
 
     @GetMapping("/tickets/{id}/comments")
-    public List> getComments(@PathVariable Long id) {
+    public List<?> getComments(@PathVariable Long id) {
         return commentRepo.findByTicketIdOrderByCreatedAtAsc(id).stream()
-                .map(c -> Map.<String, Object>of(
+                .map(c -> Map.of(
                         "id", c.getId(),
                         "message", c.getMessage(),
                         "authorName", c.getAuthor().getName(),
