@@ -38,6 +38,7 @@ export default function App() {
   const [newComment, setNewComment] = useState('');
   const [complaintForm, setComplaintForm] = useState({ title: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [sendingComment, setSendingComment] = useState(false);
   const [feedback, setFeedback] = useState({ rating: 5, comment: '' });
 
   useEffect(() => {
