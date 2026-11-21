@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_URL || '[https://ai-customer-support-ocl1.onrender.com/api](https://ai-customer-support-ocl1.onrender.com/api)';
 
 const api = axios.create({
   baseURL: API_BASE,
