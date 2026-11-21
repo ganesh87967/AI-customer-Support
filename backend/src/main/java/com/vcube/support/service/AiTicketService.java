@@ -95,4 +95,26 @@ public class AiTicketService {
                 "Thank you for reaching out to us regarding \"" + title + "\". We understand how frustrating this is and have prioritized your ticket under " + category + ". Our support specialist is reviewing the details and will update you shortly."
         );
     }
+public String generateChatReply(String ticketTitle, String ticketDescription, String historyText, String customerMessage) {
+        String prompt = """
+                You are a helpful AI Customer Support Agent continuing a support conversation.
+                Ticket Title: %s
+                Original Issue: %s
+                Conversation so far:
+                %s
+
+                Latest Customer Message: %s
+
+                Write a concise, empathetic, helpful 2-3 sentence reply directly addressing the customer's latest message.
+                """.formatted(ticketTitle, ticketDescription, historyText, customerMessage);
+        try {
+            String reply = chatClient.prompt().user(prompt).call().content();
+            if (reply != null && !reply.isBlank()) {
+                return reply.trim();
+            }
+        } catch (Exception ex) {
+            log.warn("AI chat reply failed: {}", ex.getMessage());
+        }
+        return "Thank you for the update! Our support team has noted your message and is looking into it.";
+    }
 }
